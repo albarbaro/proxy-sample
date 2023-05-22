@@ -104,7 +104,7 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("RESPONSE:\n%s", string(respDump))
+		fmt.Printf("RESPONSE:\n%s\n", string(respDump))
 
 		body, error := ioutil.ReadAll(resp.Body)
 		if error != nil {

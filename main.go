@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
+	"net/http/httputil"
 	"net/url"
 	"strings"
 
@@ -13,10 +16,11 @@ import (
 )
 
 var cache map[string]*CacheItem
+var client *http.Client
 
 type Body struct {
-	Token string `json:"token" binding:"required"`
-	URL   string `json:"url" binding:"required"`
+	Token string `json:"token" form:"token" binding:"required"`
+	URL   string `json:"url" form:"url" binding:"required"`
 }
 
 type CacheItem struct {
@@ -27,23 +31,28 @@ type CacheItem struct {
 func main() {
 	cache = make(map[string]*CacheItem, 0)
 	router := gin.New()
+
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	client = &http.Client{
+		Jar: jar,
+	}
+
 	router.POST("/test", func(context *gin.Context) {
 		body := Body{}
-		if err := context.BindJSON(&body); err != nil {
+		if err := context.Bind(&body); err != nil {
+			fmt.Println(err)
 			context.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
 
-		jar, err := cookiejar.New(nil)
-		if err != nil {
-			context.AbortWithError(http.StatusBadRequest, err)
-		}
-
-		client := &http.Client{
-			Jar: jar,
-		}
-
-		resp, err := client.Get(body.URL + "&k8s_token=" + body.Token)
+		req, _ := http.NewRequest("GET", body.URL+"&k8s_token="+body.Token, nil)
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := client.Do(req)
 		if err != nil {
 			context.AbortWithError(http.StatusBadRequest, err)
 		}
@@ -58,33 +67,57 @@ func main() {
 			context.AbortWithError(http.StatusBadRequest, err)
 		}
 
-		bu, err := url.Parse(body.URL + "&k8s_token=" + body.Token)
+		_, err = url.Parse(body.URL + "&k8s_token=" + body.Token)
 		if err != nil {
 			context.AbortWithError(http.StatusBadRequest, err)
 		}
-		fmt.Println("jar has these cookies after first call: ", client.Jar.Cookies(bu))
 
-		context.JSON(http.StatusAccepted, url.String())
+		context.Redirect(http.StatusFound, url.String())
+
 	})
 
 	router.GET("/oauth/callback", func(context *gin.Context) {
 		values := context.Request.URL.Query()
 		state := values.Get("state")
 
-		client := cache[state].Client
 		uri := cache[state].URL
 		uri.RawQuery = context.Request.URL.RawQuery
-		fmt.Println("redirecting to spi to: ", uri.String())
-		resp, err := client.Get(uri.String())
+
+		req, _ := http.NewRequest("GET", uri.String(), nil)
+		req.Header.Set("Content-Type", "application/json")
+		for _, cookie := range client.Jar.Cookies(uri) {
+			http.SetCookie(context.Writer, cookie)
+		}
+
+		resp, err := client.Do(req)
 		if err != nil {
 			context.AbortWithError(http.StatusBadRequest, err)
 		}
-		body, err := io.ReadAll(resp.Body)
+
+		reqDump, err := httputil.DumpRequest(req, true)
 		if err != nil {
-			context.AbortWithError(http.StatusBadRequest, err)
+			log.Fatal(err)
 		}
-		fmt.Println("jar has these cookies after first call: ", client.Jar.Cookies(uri))
+		fmt.Printf("REQUEST:\n%s", string(reqDump))
+
+		respDump, err := httputil.DumpResponse(resp, true)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("RESPONSE:\n%s", string(respDump))
+
+		body, error := ioutil.ReadAll(resp.Body)
+		if error != nil {
+			fmt.Println(error)
+		}
+		resp.Body.Close()
+
 		context.JSON(http.StatusAccepted, string(body))
+	})
+
+	router.GET("/index", func(context *gin.Context) {
+		markdown := `<!DOCTYPE html><html><body><h2>HTML Forms</h2><form action="http://localhost:8080/test" method="POST"> <label for="fname">url:</label><br> <input type="text" id="url" name="url" value=""><br> <label for="lname">token:</label><br> <input type="text" id="token" name="token" value=""><br><br> <input type="submit" value="Submit"></form> </body></html>`
+		context.Data(http.StatusOK, "text/html; charset=utf-8", []byte(markdown))
 	})
 	router.Run(":8080")
 }

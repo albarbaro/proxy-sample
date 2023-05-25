@@ -22,26 +22,31 @@ func main() {
 		code := values.Get("code")
 		if code == "" {
 			context.AbortWithError(http.StatusBadRequest, fmt.Errorf("code from github is empty"))
+			return
 		}
 
 		callbackParsed, err := url.ParseQuery(callbackRaw)
 		if err != nil {
 			context.AbortWithError(http.StatusBadRequest, err)
+			return
 		}
 
 		callback := callbackParsed.Get("calback")
 		if callback == "" {
 			context.AbortWithError(http.StatusBadRequest, fmt.Errorf("callback in state is empty"))
+			return
 		}
 
 		state := callbackParsed.Get("state")
 		if state == "" {
 			context.AbortWithError(http.StatusBadRequest, fmt.Errorf("state in state is empty"))
+			return
 		}
 
 		u, err := url.Parse(callback)
 		if err != nil {
 			context.AbortWithError(http.StatusBadRequest, err)
+			return
 		}
 
 		u.Scheme = "https"

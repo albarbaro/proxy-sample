@@ -56,6 +56,7 @@ func main() {
 		u.RawQuery = q.Encode()
 
 		context.Redirect(http.StatusFound, u.String())
+
 	})
 
 	router.Run(":8080")

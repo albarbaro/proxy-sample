@@ -31,7 +31,7 @@ func main() {
 			return
 		}
 
-		callback := callbackParsed.Get("calback")
+		callback := callbackParsed.Get("callback")
 		if callback == "" {
 			context.AbortWithError(http.StatusBadRequest, fmt.Errorf("callback in state is empty"))
 			return

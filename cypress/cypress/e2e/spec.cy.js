@@ -1,8 +1,9 @@
 describe('template spec', () => {
-  cy.log(Cypress.env('SPI_OAUTH_URL'))
-  cy.log(Cypress.env('GH_USER'))
-  cy.log(Cypress.env('GH_PASSWORD'))
   it('passes', () => {
+    cy.log(Cypress.env('SPI_OAUTH_URL'))
+    cy.log(Cypress.env('GH_USER'))
+    cy.log(Cypress.env('GH_PASSWORD'))
+    
     cy.visit(Cypress.env('SPI_OAUTH_URL'))
 
     cy.origin('https://github.com/login', () => {

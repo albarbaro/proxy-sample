@@ -1,4 +1,7 @@
 describe('template spec', () => {
+  cy.log(Cypress.env('SPI_OAUTH_URL'))
+  cy.log(Cypress.env('GH_USER'))
+  cy.log(Cypress.env('GH_PASSWORD'))
   it('passes', () => {
     cy.visit(Cypress.env('SPI_OAUTH_URL'))
 

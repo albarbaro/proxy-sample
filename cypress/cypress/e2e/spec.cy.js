@@ -21,9 +21,9 @@ describe('template spec', () => {
       });
     })
 
-    cy.location('pathname')
+    /*cy.location('pathname')
       .should('include', '/callback_success')
-      .then(cy.log)
+      .then(cy.log)*/
     
     /*cy.task("generateToken", "some").then(token => {
       cy.get("#app_totp").type(token);

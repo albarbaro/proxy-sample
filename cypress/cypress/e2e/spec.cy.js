@@ -1,9 +1,5 @@
 describe('template spec', () => {
-  it('passes', () => {
-    cy.log(Cypress.env('SPI_OAUTH_URL'))
-    cy.log(Cypress.env('GH_USER'))
-    cy.log(Cypress.env('GH_PASSWORD'))
-    
+  it('passes', () => {    
     cy.visit(Cypress.env('SPI_OAUTH_URL'))
 
     cy.origin('https://github.com/login', () => {
@@ -15,6 +11,10 @@ describe('template spec', () => {
       cy.get('#password').type(Cypress.env('GH_PASSWORD'));
       cy.get('input[type="submit"][name="commit"]').click();
       
+      cy.task("generateToken", Cypress.env('GH_2FA_CODE')).then(token => {
+        cy.get("#app_totp").type(token);
+      });
+      
       cy.get('body').then(($el) => {
         if ($el.find('#js-oauth-authorize-btn').length > 0) {
           cy.log('Need to authorize app')
@@ -25,13 +25,10 @@ describe('template spec', () => {
       });
     })
 
-    /*cy.location('pathname')
+    cy.location('pathname')
       .should('include', '/callback_success')
-      .then(cy.log)*/
-    
-    /*cy.task("generateToken", "some").then(token => {
-      cy.get("#app_totp").type(token);
-    });*/
+      .then(cy.log)
+   
   })
 })
 

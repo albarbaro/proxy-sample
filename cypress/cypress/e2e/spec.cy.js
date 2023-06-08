@@ -17,10 +17,10 @@ describe('template spec', () => {
       
       cy.get('body').then(($el) => {
         if ($el.find('#js-oauth-authorize-btn').length > 0) {
-          cy.log('Need to authorize app')
+          cy.task('log', 'Need to authorize app')
           cy.get('#js-oauth-authorize-btn').click();
         } else {
-          cy.log('No need to authorize app')
+          cy.task('log', 'No need to authorize app')
         }
       });
     })

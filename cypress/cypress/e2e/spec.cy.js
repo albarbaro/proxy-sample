@@ -56,15 +56,15 @@ describe('template spec', () => {
       });
     })
     
-    cy.location('pathname')
-      .then((url) => {
-        cy.task('log', 'Current URL is: ' + url)
-      })
-      .should('include', '/callback_success')
     
+    
+  })
+  it('passes', () => {   
     cy.url().then((url) => {
-      cy.task('log', 'Current URL is: ' + url)
+        cy.task('log', 'Current Github URL is: ' + url)  
     })
+    cy.location('pathname')
+      .should('include', '/callback_success')
   })
 })
 

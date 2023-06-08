@@ -7,7 +7,11 @@ module.exports = defineConfig({
       on('task', {
         generateToken(secret) {
           return otplib.authenticator.generate(secret);
-        }
+        },
+        log(message) {
+          console.log(message);
+          return null;
+        },
       })
     },
   },

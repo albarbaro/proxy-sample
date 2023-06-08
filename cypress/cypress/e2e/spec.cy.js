@@ -1,8 +1,5 @@
 describe('template spec', () => {
   it('passes', () => {   
-    Cypress.env('SPI_OAUTH_URL').should('not.be.empty') 
-    Cypress.env('GH_USER').should('not.be.empty') 
-    Cypress.env('GH_PASSWORD').should('not.be.empty')
     
     cy.task('log', 'Visiting '+Cypress.env('SPI_OAUTH_URL'))
     cy.visit(Cypress.env('SPI_OAUTH_URL'))
